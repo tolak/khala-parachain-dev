@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use super::*;
 #[allow(unused_imports)]
-use frame_support::traits::OnRuntimeUpgrade;
+use frame_support::{traits::OnRuntimeUpgrade, PalletId};
 
 // Note to "late-migration":
 //
@@ -18,3 +18,43 @@ use frame_support::traits::OnRuntimeUpgrade;
 // The final decision is to just skip the pre_upgrade checks. We have carefully checked all the
 // pre_upgrade checks and confirmed that only the prefix checks are skipped. All the other checks
 // are still performed in an offline try-runtime test.
+
+#[cfg(feature = "try-runtime")]
+const BRIDGE_ID: PalletId = PalletId(*b"phala/bg");
+
+pub struct AssetRegistryTest;
+
+impl OnRuntimeUpgrade for AssetRegistryTest {
+    /// Execute some pre-checks prior to a runtime upgrade.
+	///
+	/// This hook is never meant to be executed on-chain but is meant to be used by testing tools.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+
+		log::warn!("AssetRegistryTest");
+
+        let result = pallet_assets_wrapper::pallet::Pallet::<super::Runtime>::force_register_asset(
+            Origin::root(),
+            MultiLocation::new(1, X2(Parachain(2001), GeneralKey([0x00, 0x01].to_vec()))).into(),
+            2,
+            pallet_assets_wrapper::AssetProperties {
+                name: b"Bifrost".to_vec(),
+                symbol: b"BNC".to_vec(),
+                decimals: 12,
+            },
+            BRIDGE_ID.into_account(),
+        );
+
+        log::warn!("Result: {:?}", result);
+
+		Ok(())
+	}
+
+	/// Execute some post-checks after a runtime upgrade.
+	///
+	/// This hook is never meant to be executed on-chain but is meant to be used by testing tools.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		Ok(())
+	}
+}
