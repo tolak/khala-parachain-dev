@@ -315,6 +315,7 @@ impl Contains<Call> for BaseCallFilter {
             // Parachain
             Call::ParachainSystem { .. } |
             // Monetary
+            Call::AssetsWrapper { .. } |
             Call::Balances { .. }  |
             Call::ChainBridge { .. } |
             Call::BridgeTransfer { .. } |

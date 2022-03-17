@@ -3,6 +3,7 @@ use super::*;
 #[allow(unused_imports)]
 use frame_support::{traits::OnRuntimeUpgrade, PalletId};
 use sp_runtime::traits::AccountIdConversion;
+use pallet_collective::RawOrigin;
 
 // Note to "late-migration":
 //
@@ -32,10 +33,12 @@ impl OnRuntimeUpgrade for AssetRegistryTest {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
 		let asset_owner: <super::Runtime as frame_system::Config>::AccountId = BRIDGE_ID.into_account();
+		let origin: <super::Runtime as pallet_collective::Config<pallet_collective::Instance1>>::Origin =
+			RawOrigin::<<super::Runtime as frame_system::Config>::AccountId , pallet_collective::Instance1>::Members(3, 3).into();
 
 		log::warn!("AssetRegistryTest");
         let result = pallet_assets_wrapper::pallet::Pallet::<super::Runtime>::force_register_asset(
-            Origin::root(),
+            origin,
             MultiLocation::new(1, X2(Parachain(2001), GeneralKey([0x00, 0x01].to_vec()))).into(),
             2,
             pallet_assets_wrapper::AssetProperties {
